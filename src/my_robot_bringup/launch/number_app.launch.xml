@@ -1,0 +1,7 @@
+<launch>
+    <node pkg="my_robot_controller" exec="test_node" name="my_first_node">
+    </node>
+    <node pkg="my_robot_controller" exec="number_publisher_W_Param">
+        <param from="$(find-pkg-share my_robot_bringup)/config/number_app.yaml"/>
+    </node>
+</launch>
