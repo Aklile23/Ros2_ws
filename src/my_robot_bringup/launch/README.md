@@ -1,0 +1,371 @@
+# Launch Folder - ROS2 Launch Files
+
+I created this folder to learn how to create ROS2 launch files in both Python and XML formats. Launch files allow me to start multiple nodes together with proper configuration, making it much easier to run complex robot systems.
+
+## Overview
+
+This folder contains launch files that demonstrate how to:
+- Launch multiple ROS2 nodes simultaneously
+- Load parameter configuration files (YAML)
+- Use both Python and XML launch file formats
+- Organize launch files in a dedicated package
+- Pass parameters to nodes via launch files
+
+---
+
+## Launch Files
+
+### 1. `number_app.launch.py` (Python Launch File)
+
+**What I did:** I created a Python launch file to learn the Python-based launch file API, which is more powerful and flexible than XML.
+
+**What it does:**
+- Launches two nodes from `my_robot_controller`:
+  - `test_node` - A simple test node
+  - `number_publisher_W_Param` - A number publisher with parameters loaded from YAML
+- Loads parameters from `config/number_app.yaml` for the number publisher node
+- Demonstrates the Python launch API structure
+
+**Key concepts I learned:**
+
+1. **Launch Description Structure:**
+   ```python
+   def generate_launch_description():
+       ld = LaunchDescription()
+       # Add actions here
+       return ld
+   ```
+   - Must define `generate_launch_description()` function
+   - Returns a `LaunchDescription` object
+   - This is the entry point for Python launch files
+
+2. **Creating Node Actions:**
+   ```python
+   my_first_node = Node(
+       package="my_robot_controller",
+       executable="test_node",
+   )
+   ```
+   - Use `Node` from `launch_ros.actions`
+   - `package` - The package name containing the executable
+   - `executable` - The name of the executable to run
+   - Can optionally set `name` to override the node name
+
+3. **Loading Parameter Files:**
+   ```python
+   param_config = os.path.join(
+       get_package_share_directory("my_robot_bringup"), 
+       "config", 
+       "number_app.yaml"
+   )
+   number_publisher_W_Param = Node(
+       package="my_robot_controller",
+       executable="number_publisher_W_Param",
+       parameters=[param_config]
+   )
+   ```
+   - Use `get_package_share_directory()` to find package paths
+   - Use `os.path.join()` to build file paths
+   - Pass parameter file path to `parameters` argument (as a list)
+
+4. **Adding Actions to Launch Description:**
+   ```python
+   ld.add_action(my_first_node)
+   ld.add_action(number_publisher_W_Param)
+   ```
+   - Must add all nodes/actions to the LaunchDescription
+   - Order matters - nodes are started in the order they're added
+
+**How to run:**
+```bash
+ros2 launch my_robot_bringup number_app.launch.py
+```
+
+**Advantages of Python launch files:**
+- More powerful and flexible
+- Can use Python logic (conditionals, loops, functions)
+- Better for complex launch scenarios
+- Can programmatically generate launch configurations
+- Better error handling and debugging
+
+---
+
+### 2. `number_app.launch.xml` (XML Launch File)
+
+**What I did:** I created an XML launch file to learn the XML-based launch file format, which is simpler and more declarative.
+
+**What it does:**
+- Launches the same two nodes as the Python version
+- Uses XML syntax to define nodes and parameters
+- Demonstrates the XML launch file structure
+
+**Key concepts I learned:**
+
+1. **XML Launch File Structure:**
+   ```xml
+   <launch>
+       <!-- Nodes go here -->
+   </launch>
+   ```
+   - Root element is `<launch>`
+   - All nodes and configurations go inside this tag
+
+2. **Defining Nodes:**
+   ```xml
+   <node pkg="my_robot_controller" exec="test_node" name="my_first_node">
+   </node>
+   ```
+   - Use `<node>` element
+   - `pkg` - Package name (equivalent to `package` in Python)
+   - `exec` - Executable name (equivalent to `executable` in Python)
+   - `name` - Optional node name override
+
+3. **Loading Parameter Files:**
+   ```xml
+   <node pkg="my_robot_controller" exec="number_publisher_W_Param">
+       <param from="$(find-pkg-share my_robot_bringup)/config/number_app.yaml"/>
+   </node>
+   ```
+   - Use `<param>` element with `from` attribute
+   - `$(find-pkg-share <package>)` - Substitution to find package share directory
+   - Path to YAML file relative to package share directory
+
+**How to run:**
+```bash
+ros2 launch my_robot_bringup number_app.launch.xml
+```
+
+**Advantages of XML launch files:**
+- Simpler syntax for basic use cases
+- More declarative and readable for simple scenarios
+- Familiar to ROS1 users
+- Good for straightforward node launching
+
+---
+
+## Comparison: Python vs. XML Launch Files
+
+I learned that both formats can do the same thing, but have different strengths:
+
+| Feature | Python Launch | XML Launch |
+|---------|---------------|------------|
+| **Syntax** | Python code | XML markup |
+| **Complexity** | More powerful, can be complex | Simpler, more declarative |
+| **Logic** | Can use Python conditionals, loops, functions | Limited to XML substitutions |
+| **File paths** | Use `os.path.join()` and functions | Use `$(find-pkg-share)` substitution |
+| **Best for** | Complex scenarios, dynamic configurations | Simple, straightforward launches |
+| **Learning curve** | Steeper (need to know Python) | Gentler (just XML syntax) |
+
+**My recommendation:** Start with XML for simple cases, use Python for complex scenarios.
+
+---
+
+## What the Launch Files Do
+
+Both launch files start the same system:
+
+1. **`test_node`** (my_first_node)
+   - A simple test node from `my_robot_controller`
+   - Runs independently
+
+2. **`number_publisher_W_Param`**
+   - Number publisher node that uses parameters
+   - Parameters loaded from `config/number_app.yaml`:
+     - `number: 10.0`
+     - `timer_period: 0.5`
+   - Publishes numbers to `/number` topic
+
+**Result:** Both nodes run simultaneously, and the number publisher uses the configured parameters.
+
+---
+
+## Parameter Configuration File
+
+The launch files load parameters from:
+
+**Location:** `my_robot_bringup/config/number_app.yaml`
+
+**Contents:**
+```yaml
+/number_publisher:
+  ros__parameters:
+    number: 10.0
+    timer_period: 0.5
+```
+
+**How it works:**
+- The node name (`/number_publisher`) must match the node name in the code
+- `ros__parameters:` is the required namespace for ROS2 parameters
+- Parameters are listed under this namespace
+- Both Python and XML launch files can load this same file
+
+---
+
+## Complete Workflow
+
+Here's how I use launch files:
+
+1. **Build the workspace:**
+   ```bash
+   cd /home/aklile/ros2_ws
+   colcon build
+   source install/setup.bash
+   ```
+
+2. **Run the launch file:**
+   ```bash
+   # Python version
+   ros2 launch my_robot_bringup number_app.launch.py
+   
+   # OR XML version (does the same thing)
+   ros2 launch my_robot_bringup number_app.launch.xml
+   ```
+
+3. **Verify nodes are running:**
+   ```bash
+   # In another terminal
+   ros2 node list
+   ros2 topic list
+   ros2 topic echo /number
+   ```
+
+---
+
+## Key Differences in Syntax
+
+### Node Definition
+
+**Python:**
+```python
+Node(
+    package="my_robot_controller",
+    executable="test_node",
+    name="my_first_node"  # optional
+)
+```
+
+**XML:**
+```xml
+<node 
+    pkg="my_robot_controller" 
+    exec="test_node" 
+    name="my_first_node">  <!-- optional -->
+</node>
+```
+
+### Parameter Loading
+
+**Python:**
+```python
+param_config = os.path.join(
+    get_package_share_directory("my_robot_bringup"), 
+    "config", 
+    "number_app.yaml"
+)
+Node(
+    package="my_robot_controller",
+    executable="number_publisher_W_Param",
+    parameters=[param_config]
+)
+```
+
+**XML:**
+```xml
+<node pkg="my_robot_controller" exec="number_publisher_W_Param">
+    <param from="$(find-pkg-share my_robot_bringup)/config/number_app.yaml"/>
+</node>
+```
+
+---
+
+## Why Launch Files Are Important
+
+I learned that launch files are essential because:
+
+1. **Start Multiple Nodes:** Instead of running each node in separate terminals, launch files start them all together
+
+2. **Configuration Management:** Load parameters, set namespaces, remap topics - all in one place
+
+3. **Reproducibility:** Same launch file always starts the same system configuration
+
+4. **Organization:** Keep launch files in a dedicated `bringup` package (common ROS2 practice)
+
+5. **Easier Testing:** Can test entire systems with one command
+
+6. **Production Ready:** Real robot systems use launch files, not manual node starting
+
+---
+
+## Launch File Best Practices
+
+What I learned about organizing launch files:
+
+1. **Dedicated Package:** Keep launch files in a `_bringup` package (like `my_robot_bringup`)
+
+2. **Naming Convention:** Use descriptive names like `number_app.launch.py` or `robot_bringup.launch.xml`
+
+3. **Configuration Files:** Keep YAML configs in a `config/` directory within the bringup package
+
+4. **Documentation:** Add comments explaining what each node does
+
+5. **Modularity:** Create separate launch files for different scenarios (simulation, real robot, testing)
+
+---
+
+## Dependencies
+
+**Python Launch File:**
+- `launch` - ROS2 launch framework
+- `launch_ros.actions.Node` - For creating node actions
+- `ament_index_python.packages.get_package_share_directory` - For finding package paths
+
+**XML Launch File:**
+- No Python dependencies (pure XML)
+- Uses ROS2 launch XML parser
+
+**Both require:**
+- The packages being launched (`my_robot_controller`) must be built
+- Parameter files must exist at the specified paths
+
+---
+
+## Notes for Future Me
+
+- **File extensions:** Python launch files use `.launch.py`, XML use `.launch.xml`
+- **Package structure:** Launch files go in `launch/` directory, configs in `config/` directory
+- **Node names:** Can override node names in launch files (useful for running multiple instances)
+- **Parameter precedence:** Command-line > Launch file > YAML config > Default values
+- **Substitutions:** XML uses `$(find-pkg-share)` while Python uses `get_package_share_directory()`
+- **Both formats work:** Choose based on complexity - XML for simple, Python for complex
+- **Testing:** Can test launch files without running them using `ros2 launch --show-args`
+- **Debugging:** Use `ros2 launch --debug` to see what's happening
+- **Multiple instances:** Can launch the same node multiple times with different names/namespaces
+
+---
+
+## Common Launch File Tasks
+
+Here are things I can do with launch files:
+
+1. **Launch multiple nodes** ✓ (learned this)
+2. **Load parameters from YAML** ✓ (learned this)
+3. **Set node names** ✓ (learned this)
+4. **Remap topics** (for future learning)
+5. **Set namespaces** (for future learning)
+6. **Use conditionals** (Python only, for future learning)
+7. **Include other launch files** (for future learning)
+8. **Set environment variables** (for future learning)
+9. **Use groups and namespaces** (for future learning)
+
+---
+
+## Next Steps (Ideas for Future Learning)
+
+- Learn about topic remapping in launch files
+- Learn about namespaces and groups
+- Learn about including other launch files
+- Learn about conditional launching (Python)
+- Learn about launch file arguments/parameters
+- Learn about event handlers and lifecycle management
+- Create launch files for different scenarios (simulation, real robot, testing)
+
