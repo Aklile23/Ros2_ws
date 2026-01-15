@@ -322,8 +322,13 @@ This URDF file can be used with ROS 2 tools like:
 - `gazebo`: Simulates the robot in a physics environment
 
 To view your robot in RViz2:
+- Install the visualizer by running
 ```bash
-ros2 run rviz2 rviz2
-# Then add a RobotModel display and set the description parameter
+sudo apt install ros-humble-urdf-tutorial
+```
+- Open the urdf file inside the visualizer
+```bash
+ros2 launch urdf_tutoral display.launch.py model:=/home/aklile/my_robot.urdf
+# replace home/aklile with the actual absolute address of the file.
 ```
 
