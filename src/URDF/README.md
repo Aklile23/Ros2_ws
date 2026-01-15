@@ -327,7 +327,7 @@ To view your robot in RViz2:
 sudo apt install ros-humble-urdf-tutorial
 ```
 - Open the urdf file inside the visualizer
-  - Replace the path with the actual absolute address of the file.
+  - Replace the path (/home/aklile) with the actual absolute address of the file.
 ```bash
 ros2 launch urdf_tutoral display.launch.py model:=/home/aklile/ros2_ws/src/URDF/my_robot.urdf
 ```
