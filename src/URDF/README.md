@@ -329,9 +329,10 @@ sudo apt install ros-humble-urdf-tutorial
 - Open the urdf file inside the visualizer
 ```bash
 ros2 launch urdf_tutoral display.launch.py model:=/home/aklile/my_robot.urdf
-# replace home/aklile with the actual absolute address of the file.
 ```
+    - replace home/aklile with the actual absolute address of the file.
 To see the TF tree of this URDF file run:
 ```bash
 ros2 run tf2_tools view_frames
 ```
+    - this will create a pdf file with the tf tree in the directory we are in currently in the terminal
