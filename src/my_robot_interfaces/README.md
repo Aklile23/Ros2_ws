@@ -1,14 +1,14 @@
 # my_robot_interfaces - Custom ROS2 Interface Definitions
 
-I created this package to learn how to define custom message and service types in ROS2. This is an interface package that defines custom communication types used across my workspace.
+I created this package to learn how to define custom message, service, and action types in ROS2. This is an interface package that defines custom communication types used across my workspace.
 
 ## Package Overview
 
-This is a ROS2 interface package that defines custom message (`.msg`) and service (`.srv`) types. Interface packages are used to define communication contracts that can be shared across multiple packages in a workspace.
+This is a ROS2 interface package that defines custom message (`.msg`), service (`.srv`), and action (`.action`) types. Interface packages are used to define communication contracts that can be shared across multiple packages in a workspace.
 
 **Package Type:** Interface Package (ament_cmake)  
 **Build System:** CMake with `rosidl_default_generators`  
-**Purpose:** Define custom message and service types
+**Purpose:** Define custom message, service, and action types
 
 ---
 
@@ -43,15 +43,40 @@ float64 area
 
 **Usage:** This service can be used by service servers and clients to calculate rectangle areas.
 
+### `action/` - Action Definitions
+Contains custom action type definitions:
+
+#### `CountUntil.action`
+A custom action for counting up to a target number with periodic feedback:
+```
+# Goal
+int64 target_number
+float64 period
+---
+# Result
+int64 reached_number
+---
+# Feedback
+int64 current_number
+```
+
+**Usage:** This action is used by the `actions_py` package for implementing a counting action server and client. The action allows:
+- **Goal**: Specify a target number to count to and the period (delay) between counts
+- **Feedback**: Receive periodic updates of the current count value during execution
+- **Result**: Get the final reached number when the action completes or is canceled
+
+See `actions_py/actions_py/count_until_server.py` and `actions_py/actions_py/count_until_client.py` for implementation examples.
+
 ### `CMakeLists.txt` - Build Configuration
 CMake configuration file that:
 - Finds `rosidl_default_generators` package
-- Generates Python, C++, and other language bindings from `.msg` and `.srv` files
+- Generates Python, C++, and other language bindings from `.msg`, `.srv`, and `.action` files
 - Registers the interface files for code generation
 
 **Interface files registered:**
 - `msg/HardwareStatus.msg`
 - `srv/ComputeRectangleArea.srv`
+- `action/CountUntil.action`
 
 ### `package.xml` - Package Metadata
 Package manifest file defining:
@@ -67,10 +92,12 @@ Package manifest file defining:
 This package helped me learn:
 - ✅ Creating custom message (`.msg`) files
 - ✅ Creating custom service (`.srv`) files
+- ✅ Creating custom action (`.action`) files
 - ✅ Understanding interface packages in ROS2
 - ✅ How ROS2 generates code from interface definitions
 - ✅ Sharing custom types across multiple packages
 - ✅ The relationship between interface packages and controller packages
+- ✅ Actions vs services (actions support feedback and cancellation)
 
 ---
 
@@ -89,18 +116,21 @@ source install/setup.bash
 ```python
 from my_robot_interfaces.msg import HardwareStatus
 from my_robot_interfaces.srv import ComputeRectangleArea
+from my_robot_interfaces.action import CountUntil
 ```
 
 **Using the interfaces in C++:**
 ```cpp
 #include "my_robot_interfaces/msg/hardware_status.hpp"
 #include "my_robot_interfaces/srv/compute_rectangle_area.hpp"
+#include "my_robot_interfaces/action/count_until.hpp"
 ```
 
 **View interface definitions:**
 ```bash
 ros2 interface show my_robot_interfaces/msg/HardwareStatus
 ros2 interface show my_robot_interfaces/srv/ComputeRectangleArea
+ros2 interface show my_robot_interfaces/action/CountUntil
 ```
 
 ---
@@ -113,8 +143,10 @@ my_robot_interfaces/
 ├── package.xml             # Package metadata
 ├── msg/                     # Message definitions
 │   └── HardwareStatus.msg
-└── srv/                     # Service definitions
-    └── ComputeRectangleArea.srv
+├── srv/                     # Service definitions
+│   └── ComputeRectangleArea.srv
+└── action/                  # Action definitions
+    └── CountUntil.action
 ```
 
 ---
@@ -123,7 +155,7 @@ my_robot_interfaces/
 
 I learned the complete workflow for creating and using custom interfaces:
 
-1. **Define interfaces** - Create `.msg` and `.srv` files in this package
+1. **Define interfaces** - Create `.msg`, `.srv`, and `.action` files in this package
 2. **Build interface package** - Generate code from interface definitions
 3. **Use in other packages** - Import and use the generated types
 4. **Build dependent packages** - Build packages that use these interfaces
@@ -154,6 +186,14 @@ source install/setup.bash
 - Separator: `---`
 - Response fields (below `---`)
 
+### Action (`.action`) Syntax
+- Goal fields (above first `---`) - Parameters sent when starting the action
+- First separator: `---`
+- Result fields (between separators) - Final result returned when action completes
+- Second separator: `---`
+- Feedback fields (below second `---`) - Periodic updates during action execution
+- Actions are ideal for long-running tasks that need progress updates and cancellation support
+
 ---
 
 ## Dependencies
@@ -161,6 +201,7 @@ source install/setup.bash
 **This package provides:**
 - Custom message types for other packages to use
 - Custom service types for other packages to use
+- Custom action types for other packages to use
 
 **This package depends on:**
 - `rosidl_default_generators` - For generating code from interfaces
@@ -168,6 +209,7 @@ source install/setup.bash
 
 **Packages that use this:**
 - `my_robot_controller` - Uses `HardwareStatus` message
+- `actions_py` - Uses `CountUntil` action
 
 ---
 
@@ -186,7 +228,7 @@ source install/setup.bash
 
 - Create more custom message types for different purposes
 - Create more custom service types
-- Learn about action interfaces (`.action` files)
+- Create more custom action types for different long-running tasks
 - Learn about arrays and nested messages in custom types
 - Learn about message validation and constraints
 - Learn about interface documentation and annotations
