@@ -143,6 +143,140 @@ ros2 launch my_robot_bringup number_app.launch.xml
 
 ---
 
+### 3. `lifecycle_test.launch.py` (Python Launch File - Lifecycle Nodes)
+
+**What I did:** I created a Python launch file to learn how to launch ROS2 lifecycle nodes and their managers.
+
+**What it does:**
+- Launches two nodes from `lifecycle_py`:
+  - `number_publisher_lifecycle` - A lifecycle node that publishes numbers
+  - `lifecycle_node_manager` - A manager node that controls the lifecycle node's state transitions
+- Passes the managed node name as a parameter to the lifecycle manager
+- Demonstrates launching lifecycle nodes and passing parameters programmatically
+
+**Key concepts I learned:**
+
+1. **Passing Parameters as Dictionary:**
+   ```python
+   lifecycle_node_manager = Node(
+       package="lifecycle_py",
+       executable="lifecycle_node_manager",
+       parameters=[{"managed_node_name": managed_node_name}]
+   )
+   ```
+   - Can pass parameters directly as a dictionary in a list
+   - Useful for simple parameter passing without YAML files
+   - Parameters are passed as key-value pairs
+
+2. **Using Variables in Launch Files:**
+   ```python
+   managed_node_name = "number_publisher_lifecycle"
+   
+   my_number_publisher = Node(
+       package="lifecycle_py",
+       executable="number_publisher_lifecycle",
+       name=managed_node_name
+   )
+   ```
+   - Can use Python variables to avoid hardcoding values
+   - Makes launch files more maintainable
+   - Same variable can be reused for node name and parameter value
+
+3. **Lifecycle Node Management:**
+   - Lifecycle nodes have states: Unconfigured → Inactive → Active
+   - Manager nodes control state transitions via services
+   - Manager needs to know which node to manage (passed as parameter)
+
+**How to run:**
+```bash
+ros2 launch my_robot_bringup lifecycle_test.launch.py
+```
+
+**What happens:**
+1. The lifecycle node starts in "Unconfigured" state
+2. The manager node automatically transitions it through:
+   - Configure → Inactive
+   - Activate → Active
+3. Once active, the lifecycle node starts publishing
+
+---
+
+### 4. `lifecycle_test.launch.xml` (XML Launch File - Lifecycle Nodes)
+
+**What I did:** I created an XML launch file to learn how to launch lifecycle nodes using XML syntax.
+
+**What it does:**
+- Launches the same two nodes as the Python version:
+  - `number_publisher_lifecycle` - A lifecycle node that publishes numbers
+  - `lifecycle_node_manager` - A manager node that controls the lifecycle node's state transitions
+- Uses XML syntax to define nodes and pass parameters
+- Demonstrates how to use variables and parameter passing in XML format
+
+**Key concepts I learned:**
+
+1. **Using Variables in XML:**
+   ```xml
+   <let name="managed_node_name" value="number_publisher_lifecycle" />
+   ```
+   - Use `<let>` element to define variables
+   - Can reference variables using `$(var variable_name)`
+   - Useful for avoiding repetition and maintaining consistency
+   - Similar to Python variables but uses XML syntax
+
+2. **Using Variables in Node Names:**
+   ```xml
+   <node pkg="lifecycle_py" exec="number_publisher_lifecycle" name="$(var managed_node_name)" />
+   ```
+   - Can use variable substitution in node `name` attribute
+   - Uses `$(var variable_name)` syntax
+   - Ensures the node name matches the variable value
+
+3. **Passing Parameters in XML:**
+   ```xml
+   <node pkg="lifecycle_py" exec="lifecycle_node_manager">
+       <param name="managed_node_name" value="$(var managed_node_name)" />
+   </node>
+   ```
+   - Use `<param>` element with `name` and `value` attributes
+   - Can use variable substitution with `$(var variable_name)`
+   - Parameters are passed directly to the node
+   - Equivalent to passing a dictionary in Python launch files
+
+4. **Complete XML Structure:**
+   ```xml
+   <launch>
+       <let name="managed_node_name" value="number_publisher_lifecycle" />
+       <node pkg="lifecycle_py" exec="number_publisher_lifecycle" name="$(var managed_node_name)" />
+       <node pkg="lifecycle_py" exec="lifecycle_node_manager">
+           <param name="managed_node_name" value="$(var managed_node_name)" />
+       </node>
+   </launch>
+   ```
+   - Shows the complete structure for launching lifecycle nodes in XML
+   - Demonstrates variable definition, node creation, and parameter passing
+
+**How to run:**
+```bash
+ros2 launch my_robot_bringup lifecycle_test.launch.xml
+```
+
+**What happens:**
+1. The lifecycle node starts in "Unconfigured" state
+2. The manager node automatically transitions it through:
+   - Configure → Inactive
+   - Activate → Active
+3. Once active, the lifecycle node starts publishing
+
+**Comparison with Python version:**
+- Both XML and Python versions do exactly the same thing
+- XML uses `<let>` and `$(var name)` for variables
+- Python uses regular Python variables
+- XML uses `<param>` element for parameters
+- Python uses dictionary in `parameters` list
+- Both are equally valid - choose based on preference or complexity
+
+---
+
 ## Comparison: Python vs. XML Launch Files
 
 I learned that both formats can do the same thing, but have different strengths:
@@ -162,6 +296,8 @@ I learned that both formats can do the same thing, but have different strengths:
 
 ## What the Launch Files Do
 
+### `number_app` Launch Files
+
 Both launch files start the same system:
 
 1. **`test_node`** (my_first_node)
@@ -176,6 +312,28 @@ Both launch files start the same system:
    - Publishes numbers to `/number` topic
 
 **Result:** Both nodes run simultaneously, and the number publisher uses the configured parameters.
+
+### `lifecycle_test` Launch Files
+
+Both Python and XML launch files start the same lifecycle node system:
+
+1. **`number_publisher_lifecycle`**
+   - A lifecycle node that publishes numbers
+   - Starts in "Unconfigured" state
+   - Must be transitioned through states: Unconfigured → Inactive → Active
+   - Only publishes when in "Active" state
+
+2. **`lifecycle_node_manager`**
+   - Manages the lifecycle node's state transitions
+   - Receives the managed node name as a parameter (`managed_node_name`)
+   - Automatically transitions the lifecycle node:
+     - Calls configure service → moves to Inactive
+     - Waits 3 seconds
+     - Calls activate service → moves to Active
+
+**Result:** The lifecycle node starts, gets managed by the manager, and automatically transitions to Active state where it begins publishing.
+
+**Note:** Both Python and XML versions work identically - they launch the same nodes with the same parameters. The only difference is the syntax used to define them.
 
 ---
 
@@ -214,11 +372,15 @@ Here's how I use launch files:
 
 2. **Run the launch file:**
    ```bash
-   # Python version
+   # Number app launch files
    ros2 launch my_robot_bringup number_app.launch.py
-   
-   # OR XML version (does the same thing)
+   # OR
    ros2 launch my_robot_bringup number_app.launch.xml
+   
+   # Lifecycle test launch files
+   ros2 launch my_robot_bringup lifecycle_test.launch.py
+   # OR 
+   ros2 launch my_robot_bringup lifecycle_test.launch.xml
    ```
 
 3. **Verify nodes are running:**
@@ -324,8 +486,8 @@ What I learned about organizing launch files:
 - Uses ROS2 launch XML parser
 
 **Both require:**
-- The packages being launched (`my_robot_controller`) must be built
-- Parameter files must exist at the specified paths
+- The packages being launched (`my_robot_controller`, `lifecycle_py`) must be built
+- Parameter files must exist at the specified paths (if using YAML configs)
 
 ---
 
@@ -337,9 +499,13 @@ What I learned about organizing launch files:
 - **Parameter precedence:** Command-line > Launch file > YAML config > Default values
 - **Substitutions:** XML uses `$(find-pkg-share)` while Python uses `get_package_share_directory()`
 - **Both formats work:** Choose based on complexity - XML for simple, Python for complex
+- **XML limitations:** XML launch files cannot include Python launch files using `<include>` - only XML files
+- **Variables:** XML uses `<let>` and `$(var name)`, Python uses regular variables
+- **Parameter passing:** Can pass parameters as dictionary in Python, or use `<param>` in XML
 - **Testing:** Can test launch files without running them using `ros2 launch --show-args`
 - **Debugging:** Use `ros2 launch --debug` to see what's happening
 - **Multiple instances:** Can launch the same node multiple times with different names/namespaces
+- **Lifecycle nodes:** Need a manager node to transition states; manager needs the managed node name as parameter
 
 ---
 
@@ -350,12 +516,15 @@ Here are things I can do with launch files:
 1. **Launch multiple nodes** ✓ (learned this)
 2. **Load parameters from YAML** ✓ (learned this)
 3. **Set node names** ✓ (learned this)
-4. **Remap topics** (for future learning)
-5. **Set namespaces** (for future learning)
-6. **Use conditionals** (Python only, for future learning)
-7. **Include other launch files** (for future learning)
-8. **Set environment variables** (for future learning)
-9. **Use groups and namespaces** (for future learning)
+4. **Pass parameters directly (dictionary)** ✓ (learned this - lifecycle launch files)
+5. **Use variables in launch files** ✓ (learned this - lifecycle launch files)
+6. **Launch lifecycle nodes** ✓ (learned this)
+7. **Remap topics** (for future learning)
+8. **Set namespaces** (for future learning)
+9. **Use conditionals** (Python only, for future learning)
+10. **Include other launch files** (for future learning - note: XML can't include Python files)
+11. **Set environment variables** (for future learning)
+12. **Use groups and namespaces** (for future learning)
 
 ---
 

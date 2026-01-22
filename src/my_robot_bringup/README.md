@@ -18,6 +18,8 @@ This is a ROS2 bringup package that contains launch files and configuration file
 Contains launch files in both Python and XML formats:
 - **`number_app.launch.py`** - Python launch file that starts multiple nodes with parameters
 - **`number_app.launch.xml`** - XML version of the same launch file
+- **`lifecycle_test.launch.py`** - Python launch file for lifecycle nodes and their manager
+- **`lifecycle_test.launch.xml`** - XML version of the lifecycle launch file
 - **`README.md`** - Detailed explanations of launch files
 
 **📖 Detailed explanations of launch files can be found in [`launch/README.md`](launch/README.md)**
@@ -38,7 +40,9 @@ CMake configuration file that:
 Package manifest file defining:
 - Package name, version, description
 - Build tool dependencies (`ament_cmake`)
-- Runtime dependencies (`my_robot_controller` - the package whose nodes are launched)
+- Runtime dependencies:
+  - `my_robot_controller` - the package whose nodes are launched
+  - `lifecycle_py` - the package containing lifecycle nodes
 
 ---
 
@@ -51,6 +55,9 @@ This package helped me learn:
 - ✅ Organizing launch files in a dedicated bringup package
 - ✅ ROS2 package structure for launch and configuration files
 - ✅ Differences between Python and XML launch file syntax
+- ✅ Launching lifecycle nodes and their managers
+- ✅ Passing parameters directly to nodes (dictionary in Python, `<param>` in XML)
+- ✅ Using variables in launch files (`<let>` in XML, Python variables)
 
 ---
 
@@ -65,11 +72,15 @@ source install/setup.bash
 
 **Run launch files:**
 ```bash
-# Python launch file
+# Number app launch files
 ros2 launch my_robot_bringup number_app.launch.py
-
-# OR XML launch file (does the same thing)
+# OR
 ros2 launch my_robot_bringup number_app.launch.xml
+
+# Lifecycle test launch files
+ros2 launch my_robot_bringup lifecycle_test.launch.py
+# OR
+ros2 launch my_robot_bringup lifecycle_test.launch.xml
 ```
 
 ---
@@ -83,7 +94,9 @@ my_robot_bringup/
 ├── launch/                 # Launch files
 │   ├── README.md          # Detailed explanations
 │   ├── number_app.launch.py
-│   └── number_app.launch.xml
+│   ├── number_app.launch.xml
+│   ├── lifecycle_test.launch.py
+│   └── lifecycle_test.launch.xml
 ├── config/                 # Configuration files
 │   └── number_app.yaml
 └── README.md              # This file
@@ -93,14 +106,23 @@ my_robot_bringup/
 
 ## What the Launch Files Do
 
-The launch files in this package:
-1. Start `test_node` from `my_robot_controller`
-2. Start `number_publisher_W_Param` from `my_robot_controller` with parameters loaded from `config/number_app.yaml`
+### `number_app` Launch Files
+The launch files start:
+1. `test_node` from `my_robot_controller`
+2. `number_publisher_W_Param` from `my_robot_controller` with parameters loaded from `config/number_app.yaml`
+
+### `lifecycle_test` Launch Files
+The launch files start:
+1. `number_publisher_lifecycle` from `lifecycle_py` - A lifecycle node that publishes numbers
+2. `lifecycle_node_manager` from `lifecycle_py` - A manager that automatically transitions the lifecycle node through states (Unconfigured → Inactive → Active)
 
 This demonstrates how to:
 - Launch multiple nodes together
 - Load parameter configuration files
 - Use both Python and XML launch file formats
+- Launch lifecycle nodes and their managers
+- Pass parameters directly to nodes
+- Use variables in launch files
 
 ---
 
@@ -109,6 +131,9 @@ This demonstrates how to:
 - This is a "bringup" package - a common ROS2 pattern for organizing launch files
 - Launch files can be in Python (`.launch.py`) or XML (`.launch.xml`) format
 - Configuration files are typically in YAML format
-- The package depends on `my_robot_controller` because it launches nodes from that package
+- The package depends on:
+  - `my_robot_controller` - launches nodes from this package
+  - `lifecycle_py` - launches lifecycle nodes from this package
 - For detailed explanations of launch files, see [`launch/README.md`](launch/README.md)
+- Lifecycle nodes require state management - the manager node handles state transitions automatically
 
