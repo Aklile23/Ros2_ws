@@ -20,6 +20,8 @@ Contains launch files in both Python and XML formats:
 - **`number_app.launch.xml`** - XML version of the same launch file
 - **`lifecycle_test.launch.py`** - Python launch file for lifecycle nodes and their manager
 - **`lifecycle_test.launch.xml`** - XML version of the lifecycle launch file
+- **`display.launch.py`** - Python launch file for visualizing the robot in RViz
+- **`display.launch.xml`** - XML version of the display launch file
 - **`README.md`** - Detailed explanations of launch files
 
 **📖 Detailed explanations of launch files can be found in [`launch/README.md`](launch/README.md)**
@@ -58,6 +60,8 @@ This package helped me learn:
 - ✅ Launching lifecycle nodes and their managers
 - ✅ Passing parameters directly to nodes (dictionary in Python, `<param>` in XML)
 - ✅ Using variables in launch files (`<let>` in XML, Python variables)
+- ✅ Loading URDF files from other packages
+- ✅ Launching robot visualization tools (RViz, robot_state_publisher)
 
 ---
 
@@ -81,6 +85,11 @@ ros2 launch my_robot_bringup number_app.launch.xml
 ros2 launch my_robot_bringup lifecycle_test.launch.py
 # OR
 ros2 launch my_robot_bringup lifecycle_test.launch.xml
+
+# Display launch files (robot visualization)
+ros2 launch my_robot_bringup display.launch.py
+# OR
+ros2 launch my_robot_bringup display.launch.xml
 ```
 
 ---
@@ -96,7 +105,9 @@ my_robot_bringup/
 │   ├── number_app.launch.py
 │   ├── number_app.launch.xml
 │   ├── lifecycle_test.launch.py
-│   └── lifecycle_test.launch.xml
+│   ├── lifecycle_test.launch.xml
+│   ├── display.launch.py
+│   └── display.launch.xml
 ├── config/                 # Configuration files
 │   └── number_app.yaml
 └── README.md              # This file
@@ -116,6 +127,19 @@ The launch files start:
 1. `number_publisher_lifecycle` from `lifecycle_py` - A lifecycle node that publishes numbers
 2. `lifecycle_node_manager` from `lifecycle_py` - A manager that automatically transitions the lifecycle node through states (Unconfigured → Inactive → Active)
 
+### `display` Launch Files
+The launch files start:
+1. `robot_state_publisher` - Publishes the robot description from `my_robot_description` package
+2. `joint_state_publisher_gui` - GUI for manually controlling joint positions (useful for testing)
+3. `rviz2` - RViz visualization tool with pre-configured settings
+
+These launch files demonstrate how to:
+- Load URDF files from other packages using `get_package_share_directory`
+- Use xacro to process URDF files
+- Launch robot visualization tools
+- Use variables in launch files (`<let>` in XML, Python variables)
+- Pass file paths as parameters to nodes
+
 This demonstrates how to:
 - Launch multiple nodes together
 - Load parameter configuration files
@@ -123,6 +147,7 @@ This demonstrates how to:
 - Launch lifecycle nodes and their managers
 - Pass parameters directly to nodes
 - Use variables in launch files
+- Visualize robot descriptions in RViz
 
 ---
 
@@ -134,6 +159,7 @@ This demonstrates how to:
 - The package depends on:
   - `my_robot_controller` - launches nodes from this package
   - `lifecycle_py` - launches lifecycle nodes from this package
+  - `my_robot_description` - provides URDF and RViz config for display launch files
 - For detailed explanations of launch files, see [`launch/README.md`](launch/README.md)
 - Lifecycle nodes require state management - the manager node handles state transitions automatically
 
