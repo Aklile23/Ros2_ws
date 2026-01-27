@@ -10,6 +10,7 @@ src/
 ├── my_robot_interfaces/ # Custom message, service, and action definitions
 ├── my_robot_controller/ # Python package with various controllers and demos
 ├── my_robot_bringup/    # Launch files and configuration for system bringup
+├── my_robot_description/ # Robot description package with URDF files
 ├── actions_py/          # Python package for learning ROS2 actions
 ├── lifecycle_py/        # Python package for learning lifecycle nodes
 ├── simple_commander/    # Navigation examples using Nav2 Simple Commander
@@ -136,20 +137,60 @@ my_robot_controller/
 - `number_app.launch.xml` - I also created an XML version of the launch file
 - `lifecycle_test.launch.py` - Launch file for lifecycle node testing
 - `lifecycle_test.launch.xml` - XML version of lifecycle launch file
+- `display.launch.py` - Python launch file for visualizing the robot in RViz using `my_robot_description`
+- `display.launch.xml` - XML version of the display launch file
 
 **Configuration:**
 - `config/number_app.yaml` - I created a YAML configuration file for node parameters
 
 **Dependencies:**
 - `my_robot_controller` - This launches nodes from my controller package
+- `my_robot_description` - Used by display launch files for robot visualization
 
-**How I use it:** I use this package to launch multiple nodes together with proper configuration.
+**How I use it:** I use this package to launch multiple nodes together with proper configuration, including robot visualization.
 
 **📖 See [`my_robot_bringup/README.md`](my_robot_bringup/README.md) and [`my_robot_bringup/launch/README.md`](my_robot_bringup/launch/README.md) for detailed explanations**
 
 ---
 
-### 5. `actions_py` (Actions Package)
+### 5. `my_robot_description` (Robot Description Package)
+
+**Type:** Description Package (ament_cmake)  
+**What I did:** I created this package to learn how to define robot descriptions using URDF (Unified Robot Description Format) in ROS2
+
+**What I created:**
+
+**URDF Files:**
+- `urdf/my_robot.urdf` - Main robot description file that defines:
+  - Links: base_footprint, base_link, laser, left_wheel, right_wheel, caster_wheel
+  - Joints: Fixed and continuous joints connecting the links
+  - Visual properties: Colors and geometries for visualization
+  - Robot structure: Mobile robot with base, wheels, laser sensor
+
+**RViz Configuration:**
+- `rviz/config.rviz` - Pre-configured RViz settings for displaying the robot model
+
+**Key concepts learned:**
+- Creating URDF files to describe robot structure
+- Defining links (physical components) and joints (connections)
+- Understanding joint types (fixed, continuous)
+- Adding visual properties (colors, materials, geometries)
+- Using robot_state_publisher to publish robot description
+- Configuring RViz for robot visualization
+
+**Dependencies:**
+- `ament_cmake` - Build system
+- `robot_state_publisher` - For publishing robot state (runtime)
+- `rviz2` - For visualization (runtime)
+- `joint_state_publisher_gui` - For interactive joint control (runtime)
+
+**How I use it:** The robot description is used by launch files in `my_robot_bringup` to visualize the robot in RViz.
+
+**📖 See [`my_robot_description/README.md`](my_robot_description/README.md) for detailed explanations**
+
+---
+
+### 6. `actions_py` (Actions Package)
 
 **Type:** Python (ament_python)  
 **What I did:** I created this package to learn about ROS2 actions, which are like services but with feedback and cancellation support
@@ -172,7 +213,7 @@ my_robot_controller/
 
 ---
 
-### 6. `lifecycle_py` (Lifecycle Nodes Package)
+### 7. `lifecycle_py` (Lifecycle Nodes Package)
 
 **Type:** Python (ament_python)  
 **What I did:** I created this package to learn about ROS2 lifecycle nodes, which have managed states and transitions
@@ -197,7 +238,7 @@ my_robot_controller/
 
 ---
 
-### 7. `simple_commander` (Navigation Package)
+### 8. `simple_commander` (Navigation Package)
 
 **Type:** Python scripts  
 **What I did:** I created this directory to learn about robot navigation using Nav2 Simple Commander API
@@ -220,7 +261,7 @@ my_robot_controller/
 
 ---
 
-### 8. `URDF` (Robot Description)
+### 9. `URDF` (Robot Description)
 
 **Type:** URDF files  
 **What I did:** I created this directory to learn about URDF (Unified Robot Description Format) for describing robot models
@@ -244,11 +285,12 @@ my_robot_controller/
 1. `my_robot_interfaces` - Must be built first (other packages depend on it)
 2. `my_cpp_pkg` - Independent C++ package
 3. `my_robot_controller` - Depends on `my_robot_interfaces`
-4. `actions_py` - Depends on `my_robot_interfaces`
-5. `lifecycle_py` - Independent package
-6. `my_robot_bringup` - Depends on `my_robot_controller` and `lifecycle_py`
-7. `simple_commander` - Independent scripts
-8. `URDF` - Independent files
+4. `my_robot_description` - Independent description package
+5. `actions_py` - Depends on `my_robot_interfaces`
+6. `lifecycle_py` - Independent package
+7. `my_robot_bringup` - Depends on `my_robot_controller`, `lifecycle_py`, and `my_robot_description`
+8. `simple_commander` - Independent scripts
+9. `URDF` - Independent files
 
 ---
 
@@ -266,10 +308,13 @@ I created these packages in a learning progression:
 3. **System Integration** (`my_robot_bringup`)
    - Launch files, configuration
 
-4. **Advanced Features** (`actions_py`, `lifecycle_py`)
+4. **Robot Description** (`my_robot_description`)
+   - URDF files, robot visualization
+
+5. **Advanced Features** (`actions_py`, `lifecycle_py`)
    - Actions, lifecycle nodes
 
-5. **Specialized Topics** (`simple_commander`, `URDF`)
+6. **Specialized Topics** (`simple_commander`, `URDF`)
    - Navigation, robot description
 
 ---

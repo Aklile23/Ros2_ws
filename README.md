@@ -27,6 +27,7 @@ ros2_ws/
     ├── my_robot_interfaces/
     ├── my_robot_controller/
     ├── my_robot_bringup/
+    ├── my_robot_description/
     ├── actions_py/
     ├── lifecycle_py/
     ├── simple_commander/
@@ -87,8 +88,9 @@ This workspace covers various ROS2 concepts:
 6. **Parameters** - Configuring nodes using parameters
 7. **Launch Files** - System bringup and multi-node execution
 8. **Lifecycle Nodes** - State-managed nodes with lifecycle transitions
-9. **Navigation** - Using Nav2 for robot navigation
-10. **URDF** - Robot description files
+9. **Robot Description** - Creating URDF files and visualizing robots
+10. **Navigation** - Using Nav2 for robot navigation
+11. **URDF** - Robot description files
 
 ---
 

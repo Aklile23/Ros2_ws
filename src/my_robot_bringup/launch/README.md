@@ -277,6 +277,190 @@ ros2 launch my_robot_bringup lifecycle_test.launch.xml
 
 ---
 
+### 5. `display.launch.py` (Python Launch File - Robot Visualization)
+
+**What I did:** I created a Python launch file to learn how to visualize robots in RViz using URDF files from the `my_robot_description` package.
+
+**What it does:**
+- Launches three nodes for robot visualization:
+  - `robot_state_publisher` - Publishes the robot description from URDF
+  - `joint_state_publisher_gui` - GUI for manually controlling joint positions
+  - `rviz2` - RViz visualization tool with pre-configured settings
+- Loads URDF file from `my_robot_description` package
+- Loads RViz configuration from `my_robot_description` package
+- Uses `xacro` to process the URDF file
+
+**Key concepts I learned:**
+
+1. **Loading URDF Files from Other Packages:**
+   ```python
+   urdf_path = os.path.join(
+       get_package_share_directory("my_robot_description"), 
+       "urdf", 
+       "my_robot.urdf"
+   )
+   ```
+   - Use `get_package_share_directory()` to find files in other packages
+   - Build paths using `os.path.join()` for cross-platform compatibility
+   - URDF files are typically in `urdf/` directory
+
+2. **Processing URDF with Xacro:**
+   ```python
+   robot_description = ParameterValue(
+       Command(["xacro ", urdf_path]), 
+       value_type=str
+   )
+   ```
+   - Use `Command` substitution to run shell commands
+   - `xacro` processes URDF files (can expand macros, handle includes)
+   - Wrap in `ParameterValue` to pass as parameter
+   - `value_type=str` specifies the parameter type
+
+3. **Passing Robot Description to robot_state_publisher:**
+   ```python
+   robot_state_publisher_node = Node(
+       package="robot_state_publisher",
+       executable="robot_state_publisher",
+       parameters=[{"robot_description": robot_description}]
+   )
+   ```
+   - `robot_state_publisher` needs the URDF as a parameter
+   - Parameter name is `robot_description`
+   - Pass as dictionary in `parameters` list
+
+4. **Loading RViz Configuration:**
+   ```python
+   rviz_config_path = os.path.join(
+       get_package_share_directory("my_robot_description"), 
+       "rviz", 
+       "config.rviz"
+   )
+   rviz_node = Node(
+       package="rviz2",
+       executable="rviz2",
+       output="screen",
+       arguments=["-d", rviz_config_path]
+   )
+   ```
+   - RViz config files are typically in `rviz/` directory
+   - Use `arguments` parameter to pass command-line arguments
+   - `-d` flag loads a configuration file
+   - `output="screen"` shows RViz output in terminal
+
+5. **Joint State Publisher GUI:**
+   ```python
+   joint_state_publisher_node = Node(
+       package="joint_state_publisher_gui",
+       executable="joint_state_publisher_gui",
+   )
+   ```
+   - Provides GUI sliders for controlling joint positions
+   - Useful for testing and visualizing joint movements
+   - Publishes joint states that `robot_state_publisher` uses
+
+**How to run:**
+```bash
+ros2 launch my_robot_bringup display.launch.py
+```
+
+**What you'll see:**
+1. RViz window opens with the robot model displayed
+2. Joint State Publisher GUI opens with sliders for each joint
+3. You can move the sliders to see the robot's joints move in RViz
+4. The robot model is displayed according to the URDF description
+
+---
+
+### 6. `display.launch.xml` (XML Launch File - Robot Visualization)
+
+**What I did:** I created an XML launch file to learn how to visualize robots using XML syntax.
+
+**What it does:**
+- Launches the same three nodes as the Python version:
+  - `robot_state_publisher` - Publishes the robot description
+  - `joint_state_publisher_gui` - GUI for joint control
+  - `rviz2` - RViz visualization tool
+- Uses XML syntax with variables for file paths
+- Demonstrates XML substitutions and command execution
+
+**Key concepts I learned:**
+
+1. **Using Variables in XML:**
+   ```xml
+   <let name="urdf_path" value="$(find-pkg-share my_robot_description)/urdf/my_robot.urdf"/>
+   <let name="rviz_config_path" value="$(find-pkg-share my_robot_description)/rviz/config.rviz"/>
+   ```
+   - Use `<let>` element to define variables
+   - `$(find-pkg-share <package>)` finds package share directory
+   - Variables can be referenced using `$(var variable_name)`
+   - Makes paths reusable and maintainable
+
+2. **Processing URDF with Xacro in XML:**
+   ```xml
+   <node pkg="robot_state_publisher" exec="robot_state_publisher">
+       <param name="robot_description" value="$(command 'xacro $(var urdf_path)')"/>
+   </node>
+   ```
+   - Use `$(command '...')` to execute shell commands
+   - Can reference variables using `$(var variable_name)`
+   - `xacro` processes the URDF file
+   - Result is passed as parameter value
+
+3. **Passing Parameters in XML:**
+   ```xml
+   <param name="robot_description" value="$(command 'xacro $(var urdf_path)')"/>
+   ```
+   - Use `<param>` element with `name` and `value` attributes
+   - `name` is the parameter name
+   - `value` can use substitutions and commands
+
+4. **Passing Arguments to Nodes:**
+   ```xml
+   <node pkg="rviz2" exec="rviz2" output="screen" args="-d $(var rviz_config_path)"/>
+   ```
+   - Use `args` attribute to pass command-line arguments
+   - Can reference variables using `$(var variable_name)`
+   - `output="screen"` shows output in terminal
+
+5. **Complete XML Structure:**
+   ```xml
+   <launch>
+       <let name="urdf_path" value="$(find-pkg-share my_robot_description)/urdf/my_robot.urdf"/>
+       <let name="rviz_config_path" value="$(find-pkg-share my_robot_description)/rviz/config.rviz"/>
+       
+       <node pkg="robot_state_publisher" exec="robot_state_publisher">
+           <param name="robot_description" value="$(command 'xacro $(var urdf_path)')"/>
+       </node>
+       
+       <node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui" />
+       
+       <node pkg="rviz2" exec="rviz2" output="screen" args="-d $(var rviz_config_path)"/>
+   </launch>
+   ```
+   - Shows complete structure for robot visualization in XML
+   - Demonstrates variables, parameter passing, and command execution
+
+**How to run:**
+```bash
+ros2 launch my_robot_bringup display.launch.xml
+```
+
+**What you'll see:**
+1. RViz window opens with the robot model displayed
+2. Joint State Publisher GUI opens with sliders for each joint
+3. You can move the sliders to see the robot's joints move in RViz
+4. The robot model is displayed according to the URDF description
+
+**Comparison with Python version:**
+- Both XML and Python versions do exactly the same thing
+- XML uses `<let>` and `$(var name)` for variables
+- Python uses regular Python variables
+- XML uses `$(command '...')` for shell commands
+- Python uses `Command()` substitution
+- Both are equally valid - choose based on preference
+
+---
+
 ## Comparison: Python vs. XML Launch Files
 
 I learned that both formats can do the same thing, but have different strengths:
@@ -335,6 +519,32 @@ Both Python and XML launch files start the same lifecycle node system:
 
 **Note:** Both Python and XML versions work identically - they launch the same nodes with the same parameters. The only difference is the syntax used to define them.
 
+### `display` Launch Files
+
+Both Python and XML launch files start the same robot visualization system:
+
+1. **`robot_state_publisher`**
+   - Publishes the robot description from `my_robot_description` package
+   - Receives URDF file as `robot_description` parameter
+   - Processes URDF with `xacro` before passing to node
+   - Publishes robot state on `/robot_description` topic
+
+2. **`joint_state_publisher_gui`**
+   - Provides GUI with sliders for each joint
+   - Allows manual control of joint positions
+   - Publishes joint states that `robot_state_publisher` uses
+   - Useful for testing and visualizing joint movements
+
+3. **`rviz2`**
+   - RViz visualization tool
+   - Loads pre-configured settings from `my_robot_description/rviz/config.rviz`
+   - Displays the robot model in 3D
+   - Shows robot structure, links, and joints
+
+**Result:** RViz opens with the robot model displayed, and you can use the Joint State Publisher GUI to move joints and see the robot move in RViz.
+
+**Note:** Both Python and XML versions work identically - they launch the same nodes with the same configuration. The robot description is loaded from `my_robot_description` package.
+
 ---
 
 ## Parameter Configuration File
@@ -381,6 +591,11 @@ Here's how I use launch files:
    ros2 launch my_robot_bringup lifecycle_test.launch.py
    # OR 
    ros2 launch my_robot_bringup lifecycle_test.launch.xml
+   
+   # Display launch files (robot visualization)
+   ros2 launch my_robot_bringup display.launch.py
+   # OR
+   ros2 launch my_robot_bringup display.launch.xml
    ```
 
 3. **Verify nodes are running:**
@@ -486,8 +701,9 @@ What I learned about organizing launch files:
 - Uses ROS2 launch XML parser
 
 **Both require:**
-- The packages being launched (`my_robot_controller`, `lifecycle_py`) must be built
+- The packages being launched (`my_robot_controller`, `lifecycle_py`, `my_robot_description`) must be built
 - Parameter files must exist at the specified paths (if using YAML configs)
+- URDF files must exist in the description package (for display launch files)
 
 ---
 
@@ -506,6 +722,10 @@ What I learned about organizing launch files:
 - **Debugging:** Use `ros2 launch --debug` to see what's happening
 - **Multiple instances:** Can launch the same node multiple times with different names/namespaces
 - **Lifecycle nodes:** Need a manager node to transition states; manager needs the managed node name as parameter
+- **Robot visualization:** Use `robot_state_publisher` to publish URDF; use `xacro` to process URDF files
+- **RViz configuration:** Can load pre-configured RViz settings using `-d` argument
+- **Command execution:** Use `Command()` in Python or `$(command '...')` in XML to run shell commands like `xacro`
+- **Cross-package file access:** Use `get_package_share_directory()` in Python or `$(find-pkg-share)` in XML to access files from other packages
 
 ---
 
@@ -519,12 +739,16 @@ Here are things I can do with launch files:
 4. **Pass parameters directly (dictionary)** ✓ (learned this - lifecycle launch files)
 5. **Use variables in launch files** ✓ (learned this - lifecycle launch files)
 6. **Launch lifecycle nodes** ✓ (learned this)
-7. **Remap topics** (for future learning)
-8. **Set namespaces** (for future learning)
-9. **Use conditionals** (Python only, for future learning)
-10. **Include other launch files** (for future learning - note: XML can't include Python files)
-11. **Set environment variables** (for future learning)
-12. **Use groups and namespaces** (for future learning)
+7. **Load URDF files from other packages** ✓ (learned this - display launch files)
+8. **Use xacro to process URDF** ✓ (learned this - display launch files)
+9. **Launch robot visualization tools** ✓ (learned this - display launch files)
+10. **Pass command-line arguments to nodes** ✓ (learned this - display launch files)
+11. **Remap topics** (for future learning)
+12. **Set namespaces** (for future learning)
+13. **Use conditionals** (Python only, for future learning)
+14. **Include other launch files** (for future learning - note: XML can't include Python files)
+15. **Set environment variables** (for future learning)
+16. **Use groups and namespaces** (for future learning)
 
 ---
 
